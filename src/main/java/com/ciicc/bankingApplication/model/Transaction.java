@@ -4,15 +4,25 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Entity 
+@Entity
+@Getter
+@Setter 
+@NoArgsConstructor
+@Table (name = "transactions")
 public class Transaction {
     
     @Id 
@@ -30,16 +40,16 @@ public class Transaction {
     @Column(
         name = "account_number",
         nullable = false,
-        length = 10
+        length = 20
     )
     private String accountNumber;
 
+    @Enumerated(EnumType.STRING)
     @Column(
         name = "transaction_type",
-        nullable = false,
-        length = 20
+        nullable = false
     )
-    private String transactionType;
+    private TransactionType transactionType;
 
     @Column (
         name = "amount",
@@ -67,6 +77,8 @@ public class Transaction {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

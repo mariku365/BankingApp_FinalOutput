@@ -9,6 +9,6 @@ public class GenerateAccountNumber {
         String prefix = LocalDateTime.now()
             .format(DateTimeFormatter.ofPattern("yyHH"));
 
-        return prefix + String.format("%06d", id);
+        return "ACC-" + prefix + "-" + String.format("%06d", id);
     }
 }

@@ -33,7 +33,6 @@ public class Account {
 
     @Column(
         name = "account_number",
-        nullable = false,
         unique = true,
         length = 20
     )
