@@ -46,12 +46,13 @@ public class ConsoleUI implements CommandLineRunner{
                 case 2 -> balanceInquiry(userInput);
                 case 3 -> listAccounts();
                 case 4 -> deposit(userInput);
-                // case 5 -> withdraw(userInput);
-                // case 6 -> transfer(userInput);
-                // case 7 -> transactionHistory(userInput);
+                case 5 -> withdraw(userInput);
+                case 6 -> transfer(userInput);
+                case 7 -> transactionHistory(userInput);
                 case 0 -> {
-                    System.out.println("Exiting the application. Goodbye!");
+                    System.out.println("Exiting the application. Goodbye!\n");
                     running = false;
+                    System.exit(0);
                 }
                 default -> System.out.println("Invalid choice. Please try again.");
             }
@@ -84,6 +85,11 @@ public class ConsoleUI implements CommandLineRunner{
         System.out.print("Enter initial deposit: ");
         BigDecimal initialDeposit = new BigDecimal(userInput.nextLine());
 
+        if (initialDeposit.compareTo(BigDecimal.ZERO) < 0) {
+            System.out.println("Initial deposit cannot be less than zero.");
+            return;
+        }
+
         CreateAccountRequest createAccountRequest = new CreateAccountRequest();
         createAccountRequest.setAccountName(accountName);
         createAccountRequest.setInitialDeposit(initialDeposit);
@@ -110,13 +116,19 @@ public class ConsoleUI implements CommandLineRunner{
         BalanceInquiryRequest balanceInquiryRequest = new BalanceInquiryRequest();
         balanceInquiryRequest.setAccountNumber(accountNumber);
 
-        Account account = accountService.getAccount(balanceInquiryRequest);
-        String accountName = account.getAccountName();
-        BigDecimal balance = account.getBalance();
+        try {
+            Account account = accountService.getAccount(balanceInquiryRequest);
 
-        System.out.println("\nAccount Number: " + accountNumber);
-        System.out.println("Account Name: " + accountName);
-        System.out.printf("Current Balance: P%.2f%n\n", balance);
+            String accountName = account.getAccountName();
+            BigDecimal balance = account.getBalance();
+
+            System.out.println("\nAccount Number: " + accountNumber);
+            System.out.println("Account Name: " + accountName);
+            System.out.printf("Current Balance: P%.2f%n\n", balance);
+        } catch (Exception e){
+            System.out.println("Account does not exist.");
+        }
+
     }
 
 
@@ -128,7 +140,7 @@ public class ConsoleUI implements CommandLineRunner{
         for (Account account : accounts) {
             System.out.printf("Account Number: %s%n", account.getAccountNumber());
             System.out.printf("Account Name: %s%n", account.getAccountName());
-            System.out.printf("Current Balance: P%.2f%n%n", account.getBalance());
+            System.out.printf("Current Balance: P%.2f%n%n\n", account.getBalance());
         }
     }
 
@@ -143,31 +155,203 @@ public class ConsoleUI implements CommandLineRunner{
         BalanceInquiryRequest balanceInquiryRequest = new BalanceInquiryRequest();
         balanceInquiryRequest.setAccountNumber(accountNumber);
 
-        Account accountBefore = accountService.getAccount(balanceInquiryRequest);
-        BigDecimal previousBalance = accountBefore.getBalance();
+        try {
+            Account accountBefore = accountService.getAccount(balanceInquiryRequest);
+            BigDecimal previousBalance = accountBefore.getBalance();
 
-        System.out.print("Enter deposit amount: ");
-        BigDecimal amount = new BigDecimal(userInput.nextLine());
+            System.out.print("Enter deposit amount: ");
+            BigDecimal amount = new BigDecimal(userInput.nextLine());
 
-        DepositRequest depositRequest = new DepositRequest();
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                System.out.println("Deposit amount must be greater than zero.");
+                return;
+            }
 
-        depositRequest.setAccountNumber(accountNumber);
-        depositRequest.setAmount(amount);
+            DepositRequest depositRequest = new DepositRequest();
 
-        transactionService.deposit(depositRequest);
+            depositRequest.setAccountNumber(accountNumber);
+            depositRequest.setAmount(amount);
 
-        Account accountAfter = accountService.getAccount(balanceInquiryRequest);
-        BigDecimal newBalance = accountAfter.getBalance();
+            transactionService.deposit(depositRequest);
 
-        System.out.println("================================");
-        System.out.println("         DEPOSIT SUMMARY");
-        System.out.println("================================");
-        System.out.println("Account Number: " + accountNumber);
-        System.out.println("Previous Balance: P" + previousBalance);
-        System.out.printf("Deposit Amount: P%.2f%n\n", amount);
-        System.out.println("New Balance: P" + newBalance);
-        System.out.println("================================");
-        System.out.println("Deposit successful!");
+            Account accountAfter = accountService.getAccount(balanceInquiryRequest);
+            BigDecimal newBalance = accountAfter.getBalance();
+
+            System.out.println("================================");
+            System.out.println("         DEPOSIT SUMMARY");
+            System.out.println("================================");
+            System.out.println("Account Number: " + accountNumber);
+            System.out.println("Previous Balance: P" + previousBalance);
+            System.out.printf("Deposit Amount: P%.2f%n\n", amount);
+            System.out.println("New Balance: P" + newBalance);
+            System.out.println("================================");
+            System.out.println("Deposit successful!\n");
+        } catch (Exception e){
+            System.out.println("Account does not exist.");
+        }
+        
     }
 
+    public void withdraw(Scanner userInput){
+        System.out.println("================================");
+        System.out.println("            WITHDRAW");
+        System.out.println("================================");
+
+        System.out.print("Enter account number: ");
+        String accountNumber = userInput.nextLine();
+
+        BalanceInquiryRequest balanceInquiryRequest = new BalanceInquiryRequest();
+        balanceInquiryRequest.setAccountNumber(accountNumber);
+        
+        try {
+            Account accountBefore = accountService.getAccount(balanceInquiryRequest);
+            BigDecimal previousBalance = accountBefore.getBalance();
+
+            System.out.print("Enter withdrawal amount: ");
+            BigDecimal amount = new BigDecimal(userInput.nextLine());
+
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                System.out.println("Withdrawal amount must be greater than zero.");
+                return;
+            }
+
+            WithdrawRequest withdrawRequest = new WithdrawRequest();
+            withdrawRequest.setAccountNumber(accountNumber);
+            withdrawRequest.setAmount(amount);
+
+            transactionService.withdraw(withdrawRequest);
+
+            Account accountAfter = accountService.getAccount(balanceInquiryRequest);
+            BigDecimal newBalance = accountAfter.getBalance();
+
+            System.out.println("================================");
+            System.out.println("       WITHDRAWAL SUMMARY");
+            System.out.println("================================");
+            System.out.println("Account Number: " + accountNumber);
+            System.out.println("Previous Balance: P" + previousBalance);
+            System.out.printf("Withdrawal Amount: P%.2f%n\n", amount);
+            System.out.println("New Balance: P" + newBalance);
+            System.out.println("================================");
+            System.out.println("Withdrawal successful!\n");
+        } catch (Exception e){
+            System.out.println("Account does not exist.");
+        }
+        
+    }
+
+    public void transfer(Scanner userInput){
+        System.out.println("================================");
+        System.out.println("            TRANSFER");
+        System.out.println("================================");
+
+        System.out.print("Enter source account number: ");
+        String sourceAccountNumber = userInput.nextLine();
+
+        System.out.print("Enter destination account number: ");
+        String destinationAccountNumber = userInput.nextLine();
+
+        List<Account> accounts = accountService.listAccounts();
+
+        boolean sourceExists = accounts.stream()
+        .anyMatch(account ->
+                account.getAccountNumber().equals(sourceAccountNumber));
+        
+        boolean destinationExists = accounts.stream()
+        .anyMatch(account ->
+                account.getAccountNumber().equals(destinationAccountNumber));
+        
+        if (!sourceExists) {
+            System.out.println("Source Account does not exist.\n");
+            return;
+        }
+
+        if (!destinationExists) {
+            System.out.println("Destination account does not exist.\n");
+            return;
+        }
+
+        BalanceInquiryRequest sourceBalanceInquiryRequest = new BalanceInquiryRequest();
+        sourceBalanceInquiryRequest.setAccountNumber(sourceAccountNumber);
+
+        BalanceInquiryRequest destinationBalanceInquiryRequest = new BalanceInquiryRequest();
+        destinationBalanceInquiryRequest.setAccountNumber(destinationAccountNumber);
+
+        System.out.print("Enter transfer amount: ");
+        BigDecimal amount = new BigDecimal(userInput.nextLine());
+        
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            System.out.println("Transfer amount must be greater than zero.");
+            return;
+        }
+
+        TransferRequest transferRequest = new TransferRequest();
+        transferRequest.setSourceAccountNumber(sourceAccountNumber);
+        transferRequest.setDestinationAccountNumber(destinationAccountNumber);
+        transferRequest.setAmount(amount);
+
+        if (sourceAccountNumber.equals(destinationAccountNumber)){
+            System.out.println("Source and destination accounts cannot be the same.");
+            return;
+        }
+
+        transactionService.transfer(transferRequest);
+
+        System.out.println("================================");
+        System.out.println("         TRANSFER SUMMARY");
+        System.out.println("================================");
+        System.out.println("\nFrom Account: " + sourceAccountNumber);
+        System.out.println("To Account: " + destinationAccountNumber);
+        System.out.printf("Transfer Amount: P%.2f%n\n", amount);
+        System.out.println("================================");
+        System.out.println("Transfer successful!\n");
+    }
+
+    public void transactionHistory(Scanner userInput){
+        System.out.println("================================");
+        System.out.println("     TRANSACTION HISTORY");
+        System.out.println("================================");
+
+        System.out.print("Enter account number: ");
+        String accountNumber = userInput.nextLine();
+
+        BalanceInquiryRequest balanceInquiryRequest = new BalanceInquiryRequest();
+        balanceInquiryRequest.setAccountNumber(accountNumber);
+
+        try {
+            accountService.getAccount(balanceInquiryRequest);
+        } catch (RuntimeException e) {
+            System.out.println("Account does not exist.");
+            return;
+        }
+
+        TransactionHistoryRequest transactionHistoryRequest = new TransactionHistoryRequest();
+        transactionHistoryRequest.setAccountNumber(accountNumber);
+
+        List<Transaction> transactions = transactionService.getTransactionHistory(transactionHistoryRequest);
+
+        System.out.println("\nTransaction History for Account: " + accountNumber);
+        System.out.println("================================================\n");
+
+        if (transactions == null || transactions.isEmpty()) {
+            System.out.println("No transactions found for this account.");
+            return;
+        }
+
+        for (Transaction transaction : transactions) {
+            System.out.printf("Transaction Reference: %s%n", transaction.getTransactionReference());
+            System.out.printf("Transaction Type: %s%n", transaction.getTransactionType());
+            System.out.printf("Amount: P%.2f%n", transaction.getAmount());
+            
+            if (transaction.getReferenceAccount() != null
+                && !transaction.getReferenceAccount().isBlank()) {
+            System.out.println("Reference Account: "
+                    + transaction.getReferenceAccount());
+            } 
+            
+            System.out.printf("Balance After Transaction: P%.2f%n",
+                transaction.getBalance());
+
+            System.out.printf("Date: %s%n%n\n", transaction.getCreatedAt());
+        }
+    }
 }
