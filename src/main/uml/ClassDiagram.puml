@@ -1,0 +1,109 @@
+@startuml
+
+package "Presentation Layer" {
+
+class AccountController
+class TransactionController
+class ConsoleUI
+
+}
+
+package "Service Layer" {
+
+class AccountService
+class TransactionService
+
+}
+
+package "Repository Layer" {
+
+interface AccountRepository
+interface TransactionRepository
+
+}
+
+package "Model Layer" {
+
+class Account {
+    id : long
+    accountNumber : String
+    accountName : String
+    balance : BigDecimal
+    createdAt : LocalDateTime
+    updatedAt : LocalDateTime
+}
+
+class Transaction {
+    id : Long
+    transactionReference : String
+    accountNumber : String
+    transactionType : TransactionType
+    amount : BigDecimal
+    balance : BigDecimal
+    referenceAccount : String
+    createdAt : LocalDateTime
+}
+
+enum TransactionType {
+    DEPOSIT
+    WITHDRAW
+    TRANSFER_IN
+    TRANSFER_OUT
+}
+
+}
+
+package "DTO Layer" {
+
+class CreateAccountRequest
+class BalanceInquiryRequest
+class DepositRequest
+class WithdrawRequest
+class TransferRequest
+class TransactionHistoryRequest
+
+}
+
+package "Utility Layer" {
+
+class GenerateAccountNumber {
+    +generateAccountNumber(id : Long) : String
+}
+
+class GenerateTransactionNumber {
+    +generateTransactionNumber() : String
+}
+
+}
+
+AccountController --> AccountRepository
+TransactionController --> TransactionService
+
+ConsoleUI --> AccountService
+ConsoleUI --> TransactionService
+
+AccountService --> AccountRepository
+TransactionService --> AccountRepository
+TransactionService --> TransactionRepository
+
+AccountService ..> GenerateAccountNumber : uses
+TransactionService ..> GenerateTransactionNumber : uses
+
+AccountRepository --> Account
+TransactionRepository --> Transaction
+
+Transaction --> TransactionType
+
+TransactionController ..> DepositRequest
+TransactionController ..> WithdrawRequest
+TransactionController ..> TransferRequest
+TransactionController ..> TransactionHistoryRequest
+
+ConsoleUI ..> CreateAccountRequest
+ConsoleUI ..> BalanceInquiryRequest
+ConsoleUI ..> DepositRequest
+ConsoleUI ..> WithdrawRequest
+ConsoleUI ..> TransferRequest
+ConsoleUI ..> TransactionHistoryRequest
+
+@enduml

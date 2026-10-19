@@ -1,0 +1,27 @@
+@startuml
+
+entity "accounts" as accounts {
+    * id : BIGINT <<PK>>
+    --
+    * account_number : VARCHAR(20) <<UK>>
+    * account_name : VARCHAR(255)
+    * balance : DECIMAL(20,2)
+    * created_at : DATETIME
+    * updated_at : DATETIME
+}
+
+entity "transactions" as transactions {
+    * id : BIGINT <<PK>>
+    --
+    * transaction_reference : VARCHAR(20) <<UK>>
+    * account_number : VARCHAR(20) <<FK>>
+    * transaction_type : ENUM
+    * amount : DECIMAL(20,2)
+    * balance : DECIMAL(20,2)
+    * reference_account : VARCHAR(20)
+    * created_at : DATETIME
+}
+
+accounts ||--o{ transactions : performs
+
+@enduml
