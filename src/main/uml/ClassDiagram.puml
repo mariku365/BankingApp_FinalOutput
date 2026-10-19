@@ -1,4 +1,4 @@
-@startuml
+@startuml name "ClassDiagram"
 
 package "Presentation Layer" {
 
